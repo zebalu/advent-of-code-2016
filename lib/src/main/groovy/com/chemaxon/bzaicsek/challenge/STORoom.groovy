@@ -5,9 +5,23 @@ import groovy.transform.Sortable
 
 class STORoom {
     static class Room {
+
+        private static final Map<Character, Integer> decryptMapL = [:]
+        private static final Map<Integer, Character> decryptMapI = [:]
+
+        static {
+            int i = 0
+            for (char c in 'a'..'z') {
+                decryptMapL[c] = i
+                decryptMapI[i] = c
+                ++i
+            }
+        }
+
         private final String code
         private final Map<Character, Integer> letterCounter = [:]
         private final String checkSum
+        private final List<String> encodedNamesParts = []
         final int areaCode
 
         Room(String code) {
@@ -22,6 +36,7 @@ class STORoom {
                         letterCounter.putAt(c, 1)
                     }
                 }
+                encodedNamesParts.add(parts[i])
             }
             def matcher = parts.last() =~ /(\d+).(.{5})./
             areaCode = Integer.parseInt(matcher[0][1])
@@ -35,6 +50,22 @@ class STORoom {
             }
             def first5 = sorted.take(5)
             return checkSum == first5.collect { it.letter }.join('')
+        }
+
+        def decrypt() {
+            List<String> result = []
+            for (String encoded : encodedNamesParts) {
+                StringBuilder sb = new StringBuilder()
+                for (int i = 0; i < encoded.size(); ++i) {
+                    sb.append(decryptChar(encoded.charAt(i)))
+                }
+                result.add(sb.toString())
+            }
+            return result
+        }
+
+        private char decryptChar(char c) {
+            return decryptMapI[(decryptMapL[c] + areaCode) % decryptMapL.size()]
         }
 
         @Canonical
@@ -54,12 +85,14 @@ class STORoom {
     }
 
     static void main(String[] args) {
-        int sum = ROOMS.split('\n').
+        def validRooms = ROOMS.split('\n').
                 collect { new Room(it) }.
-                findAll { it.isValid() }.
-                collect {it.areaCode}.
-                sum()
+                findAll { it.isValid() }
+        def sum = validRooms.collect { it.areaCode }.sum()
+        def npObjects = ['northpole', 'object', 'storage']
+        def storage = validRooms.find{it.decrypt() == npObjects }
         println "sum all valid sector ids: ${sum}"
+        println "storage id: ${storage.areaCode}"
     }
 
     static final String ROOMS = '''aczupnetwp-mfyyj-opalcexpye-977[peyac]
