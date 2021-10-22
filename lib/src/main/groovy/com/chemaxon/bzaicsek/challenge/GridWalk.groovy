@@ -1,14 +1,19 @@
 package com.chemaxon.bzaicsek.challenge
 
+import groovy.transform.Canonical
+
 class GridWalk {
 
     List<String> commands;
 
-    int coordX = 0
-    int coordY = 0
+    Position position = new Position()
+    Set<Position> visited = new HashSet<>()
+    boolean foundRepeat = false
+    Position firstRepeat = null
     Facing facing = Facing.UP
 
     GridWalk() {
+        visited.add(new Position(0,0))
         commands = gridInput.split(',').collect { it.trim() }
         commands.each {
             TURN turn = TURN.valueOf(it.substring(0, 1))
@@ -18,16 +23,30 @@ class GridWalk {
     }
 
     public int distance() {
-        return Math.abs(coordX) + Math.abs(coordY);
+        return Math.abs(position.coordX) + Math.abs(position.coordY);
+    }
+
+    int distanceFirsRepeat() {
+        return Math.abs(firstRepeat.coordX) + Math.abs(firstRepeat.coordY);
     }
 
     private def move(TURN turn, length) {
         facing = transit(facing, turn)
+        length.times { moveOne() }
+    }
+
+    def moveOne() {
         switch (facing) {
-            case Facing.UP: coordY -= length; break;
-            case Facing.RIGHT: coordX += length; break;
-            case Facing.DOWN: coordY += length; break;
-            case Facing.LEFT: coordX -= length; break;
+            case Facing.UP: position.coordY -= 1; break;
+            case Facing.RIGHT: position.coordX += 1; break;
+            case Facing.DOWN: position.coordY += 1; break;
+            case Facing.LEFT: position.coordX -= 1; break;
+        }
+        if(!foundRepeat && visited.contains(position)) {
+            foundRepeat = true
+            firstRepeat = new Position(position.coordX, position.coordY)
+        } else {
+            visited.add(new Position(position.coordX, position.coordY));
         }
     }
 
@@ -64,8 +83,17 @@ class GridWalk {
         throw new IllegalStateException();
     }
 
+    @Canonical
+    private static class Position {
+        int coordX = 0
+        int coordY = 0
+
+    }
+
     static void main(String[] args) {
-        println new GridWalk().distance()
+        GridWalk gw = new GridWalk()
+        println "distance1: ${gw.distance()}"
+        println "distance2: ${gw.distanceFirsRepeat()}"
     }
 }
 
