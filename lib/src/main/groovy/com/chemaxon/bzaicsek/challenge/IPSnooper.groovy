@@ -1,5 +1,8 @@
 package com.chemaxon.bzaicsek.challenge
 
+import java.time.Duration
+import java.time.Instant
+
 class IPSnooper {
 
     static class Ip {
