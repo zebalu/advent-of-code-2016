@@ -15,21 +15,21 @@ class TimingIsEverything {
         def dics = readDiscs()
         def nums = dics.collect { it.positions }
         def rems = dics.collect { it.desiredMod }
-        //int chRT = chineseRemiainderTheorem(nums, rems)
-        int chRT = bruteForce(dics)
-        //dics.each { println "${it.id} --> ${it.isDesired(chRT)}" }
+        int chRT = chineseRemiainderTheorem(nums, rems)
         println chRT
     }
 
     private static void secondPart() {
         def dics = (readDiscs() + new Disc('Disc #7 has 11 positions; at time=0, it is at position 0.'))
-        int chRT = bruteForce(dics)
+        def nums = dics.collect { it.positions }
+        def rems = dics.collect { it.desiredMod }
+        int chRT = chineseRemiainderTheorem(nums, rems)
         println chRT
     }
 
     private static int bruteForce(List<Disc> dics) {
         int i = 0
-        while( ! dics.inject(true) {acc, val -> acc && val.isDesired(i)}) {
+        while (!dics.inject(true) { acc, val -> acc && val.isDesired(i) }) {
             ++i
         }
         return i
@@ -40,33 +40,32 @@ class TimingIsEverything {
         int product = nums.inject(1) { acc, val -> acc * val }
         List<Integer> partialProducts = nums.collect { (int) (product / it) }
         def inverses = (0..(nums.size() - 1)).collect { computeInverse(partialProducts[it], nums[it]) }
-        return (0..(nums.size() - 1)).collect { partialProducts[it] * inverses[it] * rems[it] }.sum()
+        return (0..(nums.size() - 1)).collect { partialProducts[it] * inverses[it] * rems[it] }.sum() % product
     }
 
-    private static int computeInverse(int a, int b) {
-        int m = b
-        int t = 0
-        int q = 0
-        int x = 0
-        int y = 1
-        if (b == 1) {
+    private static int computeInverse(int partialProduct, int num) {
+        if (num == 1) {
             return 0
         }
+        int a = partialProduct
+        int b = num
+        int x = 0
+        int y = 1
         // Apply extended Euclid Algorithm
         while (a > 1) {
             // q is quotient
-            q = a / b
-            t = b
+            int q = a / b
             // now proceed same as Euclid's algorithm
+            int oldB = b
             b = a % b
-            a = t
-            t = x
+            a = oldB
+            int oldX = x
             x = y - q * x
-            y = t
+            y = oldX
         }
         // Make x1 positive
         if (y < 0) {
-            y += m
+            y += num
         }
         return y
     }
@@ -87,9 +86,7 @@ class TimingIsEverything {
             id = m[0][1] as int
             positions = m[0][2] as int
             startPosition = m[0][3] as int
-            desiredMod = (positions*2 - id - startPosition) % positions
-            //desiredMod = (id + startPosition) % positions
-            //desiredMod = (positions + id + startPosition) % positions
+            desiredMod = (positions * 2 - id - startPosition) % positions
         }
 
         boolean isDesired(int time) {
