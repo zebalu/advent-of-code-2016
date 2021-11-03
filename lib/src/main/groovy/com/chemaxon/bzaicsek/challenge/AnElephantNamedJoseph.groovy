@@ -8,8 +8,8 @@ class AnElephantNamedJoseph {
 
     // From: https://en.wikipedia.org/wiki/Josephus_problem
     private static int josephusProblem(int n) {
-        int valueOfL = n - Integer.highestOneBit(n);
-        return 2 * valueOfL + 1;
+        int valueOfL = n - Integer.highestOneBit(n)
+        return 2 * valueOfL + 1
     }
 
     private static int crossJosephus(int n) {
